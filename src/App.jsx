@@ -1,78 +1,96 @@
-import { useEffect, useState } from 'react';
-import { motion, useScroll, useSpring } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import Hero from './components/Hero';
 import AboutSkills from './components/AboutSkills';
 import Projects from './components/Projects';
 import ExperienceContact from './components/ExperienceContact';
+import { Menu, X } from 'lucide-react';
 
-export default function App() {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.2 });
-
-  const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+function useScrollProgress() {
+  const [progress, setProgress] = useState(0);
+  const ticking = useRef(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    onScroll();
+    const update = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const p = docHeight > 0 ? Math.min(1, scrollTop / docHeight) : 0;
+      setProgress(p);
+      ticking.current = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking.current) {
+        ticking.current = true;
+        window.requestAnimationFrame(update);
+      }
+    };
+
     window.addEventListener('scroll', onScroll, { passive: true });
+    update();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  return progress;
+}
+
+export default function App() {
+  const progress = useScrollProgress();
+  const [open, setOpen] = useState(false);
+
   useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-  }, [open]);
+    const onHash = () => setOpen(false);
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Scroll progress bar */}
-      <motion.div style={{ scaleX }} className="fixed left-0 top-0 z-50 h-1 w-full origin-left bg-gradient-to-r from-sky-500 to-blue-600" />
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      {/* Top progress bar */}
+      <div className="fixed inset-x-0 top-0 z-50 h-0.5 bg-sky-500/20">
+        <div
+          className="h-full bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500"
+          style={{ width: `${progress * 100}%` }}
+        />
+      </div>
 
-      {/* Sticky header */}
-      <header className={`fixed left-0 right-0 top-0 z-40 transition-all ${scrolled ? 'backdrop-blur bg-black/40 border-b border-white/10' : 'bg-transparent'}`}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8 lg:px-12">
-          <a href="#hero" className="text-sm font-semibold tracking-wide text-white/90">YOUR.NAME</a>
-          <nav className="hidden gap-8 text-sm text-white/70 md:flex">
-            <a href="#about" className="hover:text-white">About</a>
-            <a href="#projects" className="hover:text-white">Projects</a>
-            <a href="#experience" className="hover:text-white">Experience</a>
-            <a href="#contact" className="hover:text-white">Contact</a>
+      {/* Header */}
+      <header className="fixed top-0 inset-x-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-slate-950/60 bg-slate-950/80 border-b border-white/5">
+        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
+          <a href="#home" className="font-semibold tracking-tight text-white/90">Portfolio</a>
+          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-300">
+            <a className="hover:text-white" href="#about">About</a>
+            <a className="hover:text-white" href="#projects">Projects</a>
+            <a className="hover:text-white" href="#contact">Contact</a>
           </nav>
-          <button onClick={() => setOpen(true)} className="md:hidden">
-            <Menu className="h-6 w-6" />
+          <button className="md:hidden p-2 text-slate-300" onClick={() => setOpen((s) => !s)} aria-label="Toggle menu">
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
-        {/* Mobile sheet */}
         {open && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)}>
-            <div onClick={(e) => e.stopPropagation()} className="absolute right-0 top-0 h-full w-[80%] max-w-xs bg-black p-6">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold tracking-wide text-white/90">MENU</span>
-                <button onClick={() => setOpen(false)}><X className="h-6 w-6" /></button>
-              </div>
-              <div className="mt-8 flex flex-col gap-5 text-white/80">
-                {[
-                  { href: '#about', label: 'About' },
-                  { href: '#projects', label: 'Projects' },
-                  { href: '#experience', label: 'Experience' },
-                  { href: '#contact', label: 'Contact' }
-                ].map((l) => (
-                  <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="text-base">{l.label}</a>
-                ))}
-              </div>
-            </div>
+          <div className="md:hidden border-t border-white/5">
+            <nav className="container mx-auto px-4 py-3 flex flex-col gap-2 text-slate-300">
+              <a className="py-1 hover:text-white" href="#about">About</a>
+              <a className="py-1 hover:text-white" href="#projects">Projects</a>
+              <a className="py-1 hover:text-white" href="#contact">Contact</a>
+            </nav>
           </div>
         )}
       </header>
 
-      <main className="relative">
+      {/* Main content */}
+      <main className="pt-14">
         <Hero />
         <AboutSkills />
         <Projects />
         <ExperienceContact />
       </main>
+
+      {/* Footer */}
+      <footer className="py-10 border-t border-white/5">
+        <div className="container mx-auto px-4 text-center text-sm text-slate-400">
+          © {new Date().getFullYear()} • Built with performance-first motion
+        </div>
+      </footer>
     </div>
   );
 }

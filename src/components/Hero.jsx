@@ -1,113 +1,134 @@
-import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
+import { motion, useInView } from 'framer-motion';
 import Spline from '@splinetool/react-spline';
 import { ArrowDownCircle, Rocket } from 'lucide-react';
 
-const words = [
-  'Transforming ideas into scalable web experiences.',
-  'Crafting fast, accessible, and delightful interfaces.',
-  'Building future‑ready, production‑grade apps.'
-];
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => setReduced(m.matches);
+    onChange();
+    m.addEventListener('change', onChange);
+    return () => m.removeEventListener('change', onChange);
+  }, []);
+  return reduced;
+}
+
+const GradientBadge = () => (
+  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium bg-gradient-to-r from-sky-500/10 via-blue-500/10 to-indigo-500/10 text-sky-300 ring-1 ring-white/10">
+    <Rocket size={14} className="text-sky-400" />
+    Building delightful web experiences
+  </div>
+);
 
 export default function Hero() {
-  const [index, setIndex] = useState(0);
-  const [subIndex, setSubIndex] = useState(0);
-  const [blink, setBlink] = useState(true);
-  const current = useMemo(() => words[index], [index]);
-
-  // Lightweight typewriter effect
-  useEffect(() => {
-    if (subIndex < current.length) {
-      const t = setTimeout(() => setSubIndex((s) => s + 1), 30);
-      return () => clearTimeout(t);
-    }
-    const hold = setTimeout(() => {
-      setSubIndex(0);
-      setIndex((i) => (i + 1) % words.length);
-    }, 1800);
-    return () => clearTimeout(hold);
-  }, [subIndex, current.length]);
+  const containerRef = useRef(null);
+  const inView = useInView(containerRef, { margin: '-20% 0px -20% 0px', amount: 0.2 });
+  const [isMdUp, setIsMdUp] = useState(true);
+  const prefersReduced = usePrefersReducedMotion();
 
   useEffect(() => {
-    const t = setInterval(() => setBlink((b) => !b), 500);
-    return () => clearInterval(t);
+    const onResize = () => setIsMdUp(window.matchMedia('(min-width: 768px)').matches);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  return (
-    <section id="hero" className="relative min-h-[100svh] w-full overflow-hidden bg-black text-white">
-      <div className="absolute inset-0">
-        <Spline
-          scene="https://prod.spline.design/VJLoxp84lCdVfdZu/scene.splinecode"
-          style={{ width: '100%', height: '100%' }}
-        />
-      </div>
+  // Only render Spline when in view, on medium+ screens, and user doesn't prefer reduced motion
+  const shouldRenderSpline = inView && isMdUp && !prefersReduced;
 
-      {/* Soft gradient veil for readability */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black" />
-
-      <div className="relative mx-auto flex max-w-7xl flex-col items-start justify-center gap-8 px-6 py-24 sm:px-8 lg:px-12 min-h-[100svh]">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur"
-        >
-          <Rocket className="h-4 w-4 text-sky-400" />
-          <span className="text-sm text-white/80">Available for select projects</span>
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.8 }}
-          className="text-4xl font-semibold tracking-tight sm:text-6xl lg:text-7xl"
-        >
-          <span className="bg-gradient-to-br from-white via-white to-sky-300 bg-clip-text text-transparent">
-            Your Name
-          </span>
-          <span className="block text-white/70">Web Developer & Designer</span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="max-w-2xl text-lg text-white/80 sm:text-xl"
-        >
-          {current.slice(0, subIndex)}
-          <span className={`ml-0.5 inline-block w-px translate-y-0.5 bg-white ${blink ? 'opacity-100' : 'opacity-0'}`} style={{ height: '1.1em' }} />
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="flex flex-wrap items-center gap-3"
-        >
-          <a
-            href="#projects"
-            className="group relative inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-3 text-sm font-medium text-white shadow-lg shadow-sky-500/25 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            View Work
-          </a>
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-medium text-white/90 backdrop-blur transition-colors hover:border-white/25"
-          >
-            Contact
-          </a>
-        </motion.div>
-      </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2, duration: 0.6, repeat: Infinity, repeatType: 'reverse' }}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2"
+  const heading = useMemo(
+    () => (
+      <motion.h1
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        viewport={{ once: true }}
+        className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight text-white/90"
       >
-        <ArrowDownCircle className="h-7 w-7 text-white/70" />
-      </motion.div>
+        Modern Web Developer
+      </motion.h1>
+    ),
+    []
+  );
+
+  return (
+    <section ref={containerRef} id="home" className="relative min-h-[90vh] md:min-h-screen isolate overflow-hidden">
+      {/* 3D scene area */}
+      <div className="absolute inset-0">
+        {shouldRenderSpline ? (
+          <Suspense fallback={<div className="w-full h-full bg-gradient-to-b from-slate-900 to-slate-950" />}>
+            <Spline
+              scene="https://prod.spline.design/6lYqW7Uj3xojfS5l/scene.splinecode"
+              style={{ width: '100%', height: '100%' }}
+            />
+          </Suspense>
+        ) : (
+          <div className="w-full h-full bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.15),transparent_25%),radial-gradient(circle_at_80%_30%,rgba(99,102,241,0.12),transparent_30%),linear-gradient(to_bottom,rgba(2,6,23,1),rgba(2,6,23,1))]" />
+        )}
+        {/* soft overlays must not block pointer events */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/20 to-slate-950" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 container mx-auto px-4 pt-28 md:pt-36 pb-16 md:pb-24">
+        <div className="max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="mb-6"
+          >
+            <GradientBadge />
+          </motion.div>
+
+          {heading}
+
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: true }}
+            className="mt-4 md:mt-6 text-base md:text-lg text-slate-300 max-w-2xl"
+          >
+            I craft fast, accessible, and visually refined interfaces with React, Tailwind, and modern tooling. Smooth where it matters, minimal where it counts.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="mt-8 flex items-center gap-3"
+          >
+            <a
+              href="#projects"
+              className="inline-flex items-center gap-2 rounded-md bg-sky-500/90 hover:bg-sky-500 text-white px-4 py-2 transition-colors"
+            >
+              View Projects
+            </a>
+            <a
+              href="#about"
+              className="inline-flex items-center gap-2 rounded-md bg-white/10 hover:bg-white/15 text-white px-4 py-2 transition-colors"
+            >
+              Learn More
+            </a>
+          </motion.div>
+
+          <motion.a
+            href="#about"
+            className="group mt-12 inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            <ArrowDownCircle className="h-5 w-5 transition-transform group-hover:translate-y-0.5" />
+            Scroll to explore
+          </motion.a>
+        </div>
+      </div>
     </section>
   );
 }

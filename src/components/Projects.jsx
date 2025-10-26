@@ -1,72 +1,59 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 
 const projects = [
   {
-    title: 'Realtime Dashboard',
-    desc: 'Streaming analytics with live charts and role-based access.',
-    img: 'https://images.unsplash.com/photo-1551281044-8d8c9e7fd1c9?q=80&w=1400&auto=format&fit=crop',
-    stack: ['React', 'WebSockets', 'Tailwind']
+    title: 'Minimal Dashboard',
+    desc: 'Clean analytics dashboard with responsive charts and cards.',
+    tech: ['React', 'Tailwind', 'Framer Motion'],
+    link: '#',
   },
   {
-    title: 'Ecommerce Platform',
-    desc: 'Composable storefront with optimized checkout and search.',
-    img: 'https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?q=80&w=1400&auto=format&fit=crop',
-    stack: ['Next.js', 'Stripe', 'Vercel']
+    title: 'Landing Experience',
+    desc: 'High-performance landing page with subtle motion and a11y.',
+    tech: ['Vite', 'TypeScript', 'SEO'],
+    link: '#',
   },
   {
-    title: 'Design System',
-    desc: 'Accessible component library with tokens and theming.',
-    img: 'https://images.unsplash.com/photo-1512295767273-ac109ac3acfa?q=80&w=1400&auto=format&fit=crop',
-    stack: ['Storybook', 'TypeScript', 'Radix']
+    title: 'UI Components',
+    desc: 'A set of composable UI building blocks for fast prototyping.',
+    tech: ['Tailwind', 'Radix', 'Design Systems'],
+    link: '#',
   },
-  {
-    title: 'AI Assistant',
-    desc: 'Context-aware assistant integrated into enterprise workflow.',
-    img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1400&auto=format&fit=crop',
-    stack: ['Python', 'FastAPI', 'OpenAI']
-  }
 ];
 
 export default function Projects() {
   return (
-    <section id="projects" className="relative w-full bg-black py-24 text-white">
-      <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
-        <div className="mb-10 flex items-end justify-between">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Selected Projects</h2>
-          <div className="h-px flex-1 translate-y-[-6px] bg-gradient-to-r from-white/20 to-transparent ml-6" />
+    <section id="projects" className="relative py-16 md:py-24 bg-slate-950">
+      <div className="container mx-auto px-4">
+        <div className="flex items-end justify-between gap-4 mb-8">
+          <h2 className="text-2xl md:text-3xl font-semibold text-white/90">Projects</h2>
+          <a href="#" className="text-sm text-slate-300 hover:text-white">View all</a>
         </div>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-          {projects.map((p, i) => (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map((p, idx) => (
             <motion.a
               key={p.title}
-              href="#"
-              initial={{ opacity: 0, y: 24 }}
+              href={p.link}
+              className="group relative overflow-hidden rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors"
+              initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.6, delay: i * 0.05 }}
-              className="group overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur"
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: idx * 0.05 }}
             >
-              <div className="relative aspect-[16/10] overflow-hidden">
-                <img
-                  src={p.img}
-                  alt={p.title}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-                />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              </div>
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-4">
+              <div className="aspect-[16/10] w-full bg-[radial-gradient(circle_at_30%_30%,rgba(56,189,248,0.15),transparent_40%),radial-gradient(circle_at_70%_60%,rgba(99,102,241,0.15),transparent_45%)]" />
+              <div className="p-4">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-medium">{p.title}</h3>
-                    <p className="mt-1 text-sm text-white/70">{p.desc}</p>
+                    <h3 className="text-white/90 font-medium">{p.title}</h3>
+                    <p className="text-sm text-slate-300 mt-1">{p.desc}</p>
                   </div>
-                  <ExternalLink className="mt-1 h-5 w-5 text-white/60 transition-colors group-hover:text-white" />
+                  <ExternalLink className="h-4 w-4 text-slate-400 group-hover:text-white transition-colors" />
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {p.stack.map((t) => (
-                    <span key={t} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/80">
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {p.tech.map((t) => (
+                    <span key={t} className="text-xs rounded-full px-2 py-1 bg-white/5 text-slate-300">
                       {t}
                     </span>
                   ))}
